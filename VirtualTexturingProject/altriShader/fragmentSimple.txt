@@ -1,0 +1,9 @@
+uniform sampler2D texture;
+varying vec4 clipPos;
+
+void main()
+{
+  // project to cartesian coordinates and scale from [-1,1] to [0,1].
+  vec2 texCoord = clipPos.xy / clipPos.w * 0.5 + vec2(0.5);
+  gl_FragColor = texture2D(texture,texCoord);
+}

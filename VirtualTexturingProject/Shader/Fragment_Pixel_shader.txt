@@ -1,0 +1,40 @@
+const float phys_tex_dimension_pages = 15.0;
+const float page_dimension = 256.0;
+//const float lastLevel=7.0f;
+//const float page_dimension_log2 = 8.0;
+
+uniform int lastLevel;
+//uniform float mip_bias;
+uniform sampler2D pageTableTexture;
+uniform sampler2D physicalTexture;
+
+uniform vec2 offset;
+
+
+// converts the virtual texture coordinates to the physical texcoords
+vec2 calulateVirtualTextureCoordinates(vec2 coord)
+{
+
+vec3 pageTableEntry = texture2D(pageTableTexture, coord).rgb;
+
+
+  //float mipExp = exp2(pageTableEntry.b*lastLevel); // alpha channel has mipmap-level
+float mipExp = floor(exp2(pageTableEntry.b*lastLevel)+0.5); // alpha channel has mipmap-level
+
+vec2 pageCoord = floor(pageTableEntry.rg*phys_tex_dimension_pages+0.5); // blue-green has x-y coordinates
+
+
+
+vec2 withinPageCoord = fract(coord * mipExp);
+return ((pageCoord + withinPageCoord) / phys_tex_dimension_pages);
+}
+
+
+
+void main(void)
+{
+vec2 coord = calulateVirtualTextureCoordinates(gl_TexCoord[0].xy);
+vec4 vtex = texture2D(physicalTexture, coord);
+
+gl_FragColor = vtex;
+}

@@ -1,0 +1,19 @@
+// simple shader that uses the virtual texture
+#version 110
+
+#include "virt_tex.txt"
+
+uniform sampler2D page_tex;
+uniform float page_size_log2;
+uniform vec2 page_table_size;  
+uniform vec2 phys_size_recip; // in 1/pages
+
+uniform sampler2D base_tex;
+
+void main()
+{
+   vtexcoord coord = vtex_coord(gl_TexCoord[0].st, page_tex, page_table_size, phys_size_recip, page_size_log2);
+   vec4 res = vtexture2D(base_tex, coord);
+   gl_FragColor = res;
+}
+

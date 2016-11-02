@@ -1,0 +1,31 @@
+uniform int physPageCols;
+uniform int physPageRows;
+uniform int maxMipLevel;
+
+uniform sampler2D pageTableTex; 
+uniform sampler2D physicalTex;
+
+
+
+void main()
+{
+vec3 pageCoord = texture2d(pageTableTex, gl_TexCoord[0].xy);
+
+vec2 physPage_coord = vec2(0.0,0.0);
+physPage_coord.x
+
+
+
+
+
+
+//vec3 texel = texture2DRect(pageTableTex, gl_TexCoord[0].xy);
+//gl_FragColor = pageCoord;
+
+//gl_FragColor = texture2D( physicalTex, gl_TexCoord[0].xy );  
+gl_FragColor = texture2D( pageTableTex, gl_TexCoord[0].xy );  
+
+	int a =  physPageCols;
+	
+//	gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);  
+}

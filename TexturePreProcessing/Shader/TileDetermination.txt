@@ -1,0 +1,28 @@
+const float readback_reduction_shift = 2.0;
+const float vt_dimension_pages = 128.0;
+const float vt_dimension = 32768.0;
+
+uniform float mip_bias;
+
+
+
+// analytically calculates the mipmap level similar to what OpenGL does
+float mipmapLevel(vec2 uv, float textureSize)
+{
+vec2 dx = dFdx(uv * textureSize);
+vec2 dy = dFdy(uv * textureSize);
+
+
+float d = max(dot(dx, dx), dot(dy, dy));
+return 0.5 * log2(d) // explanation: 0.5*log(x) = log(sqrt(x))
++ mip_bias - readback_reduction_shift;
+}
+
+
+void main()
+{
+// the tile x/y coordinates depend directly on the virtual texture coords
+gl_FragColor.rg = floor(gl_TexCoord[0].xy * vt_dimension_pages) / 255.0;
+gl_FragColor.b = mipmapLevel(gl_TexCoord[0].xy, vt_dimension) / 255.0;
+gl_FragColor.a = 1.0; // BGRA: mip, x, y, 255
+}

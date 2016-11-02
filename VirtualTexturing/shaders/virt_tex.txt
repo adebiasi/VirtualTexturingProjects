@@ -1,0 +1,78 @@
+#version 110
+#ifdef GL_EXT_gpu_shader4
+#extension GL_EXT_gpu_shader4: require
+#define VTEX_GRAD
+#endif
+
+uniform float mip_debug_bias, mip_trilerp_bias;
+
+struct vtexcoord
+{
+   vec2 coord;
+#ifdef VTEX_GRAD
+   vec4 grad;
+#endif
+};
+
+vtexcoord vtex_coord(vec2 address, sampler2D page_tex, vec2 page_table_size, vec2 phys_size_recip, float page_size_log2)
+{
+   // use the top bits to get the page info; bias to get page mipmaps
+   vec3 page = texture2D(page_tex, address.st, page_size_log2 - 0.5 + mip_debug_bias).xyz;
+
+   // compute a scale factor based on the mip level
+   // we don't store this pre-exp'ed in case we want more than 8 levels
+   // but is it slow? must test; alt would be to use 'page.b*255 + 1'
+   // we don't use A, so we could use page.b * 255 + page.a * 255 * 256
+   float mip2 = floor(exp2(page.b * 255.0) + 0.5);
+
+   // extract the bits that are below the page table index
+   // but! also extract some of the page table bits based on the mip level;
+   // this lets us do the right thing for the mip levels automatically
+   vec2 vtc_to_page_unit = page_table_size / mip2;
+   vec2 coord_low = fract(address * vtc_to_page_unit);
+
+   // compute the page's physical address as integers
+   vec2 page_pos = floor(page.rg * 255.0 + 0.5);
+
+   // combine the integral page address with the fractional coord
+   vec2 final_coord = page_pos + coord_low * 60.0/64.0 + 2.0/64.0;
+   // not sure why this isn't +0.5/64
+
+   // note that we pad around on all sides, rather than just padding
+   // on the right. if we pad on the right, then we can just add +0.5/64
+   // so that the samples fall in exactly the right region of mip level 0,
+   // but this doesn't work for mip level 1 and it starts too far to the
+   // right. so we need to add at least +1/64 to keep the parent mip level
+   // from sampling out too far, and then +2/64 makes things align again.
+   // note that this totally hoses using S3TC: we need both mip levels
+   // to start on a block boundary, but we also want to make mip level 1
+   // match other surfaces, so we need mip level 1 to start on a world-aligned
+   // 4x4 block, which means it must be world-aligned 8x8 at mip level 0.
+   // that means we need to pad mip-level 0 with an 8x8 block on all sides,
+   // so e.g. use 112x112 out of 128x128! (And I'm not sure that's even
+   // workable as you recurse down... I think you have to use 64x64 out
+   // of 128x128 to make everything line up top to bottom.)
+
+   // convert back to sampling coordinates
+   final_coord = final_coord * phys_size_recip;
+
+   vtexcoord result;
+   result.coord = final_coord;
+#ifdef VTEX_GRAD
+   vec2 page_unit_to_phys = 60.0/64.0 * phys_size_recip;
+   vec2 gradient_scale = exp2(mip_debug_bias + mip_trilerp_bias) * page_unit_to_phys * vtc_to_page_unit;
+   result.grad = vec4(ddx(address) * gradient_scale, ddy(address) * gradient_scale);
+#endif
+
+   return result;
+}
+
+vec4 vtexture2D(sampler2D tex, vtexcoord coord)
+{
+#ifdef VTEX_GRAD
+   return texture2DGrad(tex, coord.coord, coord.grad.xy, coord.grad.zw);
+#else
+   return texture2D(tex, coord.coord, mip_debug_bias + mip_trilerp_bias);
+#endif
+}
+                                                                  

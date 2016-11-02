@@ -1,0 +1,46 @@
+// simple shader that uses the virtual texture
+
+#include "virt_tex.txt"
+
+uniform sampler2D page_tex;
+uniform float page_size_log2;
+uniform vec2 page_table_size;  
+uniform vec2 phys_size_recip; // in 1/pages
+
+uniform sampler2D base_tex, norm_tex;
+
+
+// base.rgb = albedo
+// base.a   = spec factor
+// norm.rgb = normal
+// norm.a   = AO
+// emit.rgb = emissive
+// emit.a   = mirror factor
+
+void main()
+{
+   vtexcoord coord = vtex_coord(gl_TexCoord[0].st, page_tex, page_table_size, phys_size_recip, page_size_log2);
+
+   vec4 base = vtexture2D(base_tex, coord);
+
+   vec4 norm_samp = vtexture2D(norm_tex, coord);
+   vec3 normal = norm_samp.rgb * 2.0 - 1.0;
+
+   normal = gl_TexCoord[1].xyz * normal.z +
+            gl_TexCoord[2].xyz * normal.y -
+            gl_TexCoord[3].xyz * normal.x;
+
+   normal = normalize(normal);
+
+   vec3 light = normalize(vec3(0.577,-0.577,0.577));
+   float lbright = clamp(dot(normal, light),0.0,1.0);
+
+   vec3 old_normal = gl_TexCoord[1].xyz;
+   float front_scale = clamp(dot(old_normal, light) * 16.0+1.0, 0.0,1.0);
+   lbright *= front_scale;
+
+   vec4 lcolor = lbright * vec4(0.8,0.6,0.4,0) + vec4(0.35,0.55,0.75,0);
+   
+   gl_FragColor = base * lcolor;
+}
+

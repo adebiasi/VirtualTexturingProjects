@@ -1,0 +1,48 @@
+uniform float uMaxDim;
+uniform float uMaxMipMap;
+
+out vec4 outputColor;
+
+float calculateMipMap(vec2 uv, float textureSize)
+{
+vec2 dx=dFdx(uv.st);
+dx*=dx;
+vec2 dy=dFdy(uv.st);
+dy*=dy;
+
+float e_max=sqrt(max(dx.s+dx.t,dy.s+dy.t));
+float d=log2(e_max*textureSize);
+
+d=min(d,uMaxMipMap);
+d=max(d,0.0);
+
+return uMaxMipMap-d;
+}
+
+float mipmapLevel(vec2 uv, float textureSize)
+{
+vec2 dx = dFdx(uv * textureSize);
+vec2 dy = dFdy(uv * textureSize);
+float d = max(dot(dx, dx), dot(dy, dy));
+//return 0.5 * log2(d);
+return d*10000000;
+}
+
+
+void main()
+{
+// the tile x/y coordinates depend directly on the virtual texture coords
+//gl_FragColor.rg = vec2(0.0,0.0);
+//gl_FragColor.rg = floor(gl_TexCoord[0].xy * uMaxDim) / 255.0;
+
+
+gl_FragColor.r = mipmapLevel(gl_TexCoord[0].xy, uMaxDim) / 255.0;
+gl_FragColor.g = mipmapLevel(gl_TexCoord[0].xy, uMaxDim) / 255.0 ;
+gl_FragColor.b = mipmapLevel(gl_TexCoord[0].xy, uMaxDim) / 255.0 ;
+
+//gl_FragColor.b = 0 / 255.0;
+//gl_FragColor.a = 1.0; // BGRA: mip, x, y, 255
+
+//outputColor = vec4(0,0,0,0);
+
+}

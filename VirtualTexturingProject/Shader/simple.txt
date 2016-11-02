@@ -1,0 +1,66 @@
+//#version 150
+
+
+
+//out vec4 fragColor;
+//varying vec4 clipPos;
+uniform int uMaxMipMap;
+
+float tex_mip_level(vec2 coord, vec2 tex_size)
+{
+   vec2 dx_scaled, dy_scaled;
+   vec2 coord_scaled = coord * tex_size;
+ 
+   dx_scaled = dFdx(coord_scaled);
+   dy_scaled = dFdy(coord_scaled);
+
+   vec2 dtex = dx_scaled*dx_scaled + dy_scaled*dy_scaled;
+   float min_delta = max(dtex.x,dtex.y);
+   float miplevel = max(0.5 * log2(min_delta), 0.0);
+
+   return miplevel;
+}
+
+
+void main()
+{
+vec4 result;
+
+vec2 page_table_size = vec2(256.0,256.0);
+vec2 virt_tex_size = vec2(10000.0,10000.0);
+int lastLevel=uMaxMipMap;
+
+
+
+float mip_level = tex_mip_level(gl_TexCoord[0].xy, virt_tex_size) ;
+      mip_level = clamp(mip_level,0.0,lastLevel);
+mip_level =floor(mip_level);
+
+mip_level=lastLevel-mip_level;
+
+	vec2 page = floor(gl_TexCoord[0].xy * page_table_size)/256.0;
+   vec2 page_low  = fract(page);
+   vec2 page_high = floor(page);
+   
+   //result.rg = floor(page_low * 256.0 + 0.5) / 255.0;
+   //result.b = (page_high.x + page_high.y * 16.0) / 255.0;
+float lev = exp2(floor(mip_level));
+vec2 levxy = floor(gl_TexCoord[0].xy*lev);
+result.rg=levxy/255.0;
+
+   
+   result.a = (mip_level)/255.0;
+   result.b = (mip_level)/255.0;
+   
+   
+   
+   //result.b=exp2(3)/ 255.0;
+   float esp_lev = exp2(mip_level);
+   
+  
+
+   gl_FragColor = result;
+}
+
+
+

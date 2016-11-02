@@ -1,0 +1,19 @@
+
+
+varying vec4 clipPos;
+
+
+
+void main()
+{
+  gl_Position = ftransform();
+  clipPos = gl_Position;
+}
+
+
+
+//void main()
+//{
+//  gl_Position = ftransform();
+//  gl_TexCoord[0] = gl_MultiTexCoord0;
+//}

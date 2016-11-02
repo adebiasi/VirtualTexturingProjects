@@ -1,0 +1,12 @@
+
+uniform sampler2D physicalTexture;
+
+
+void main(void)
+{
+vec4 vtex = texture2D(physicalTexture, gl_TexCoord[0].xy);
+gl_FragColor = vtex;
+gl_FragColor.rg = vec2(1.0,1.0);
+//gl_FragColor.b = 1.0;
+//gl_FragColor.a = 1.0; 
+}

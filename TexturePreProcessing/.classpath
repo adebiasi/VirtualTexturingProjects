@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="libs/JAI/clibwrapper_jiio.jar"/>
+	<classpathentry kind="lib" path="libs/JAI/dnsns.jar"/>
+	<classpathentry kind="lib" path="libs/JAI/jai_codec.jar"/>
+	<classpathentry kind="lib" path="libs/JAI/jai_core.jar"/>
+	<classpathentry kind="lib" path="libs/JAI/jai_imageio.jar"/>
+	<classpathentry kind="lib" path="libs/JAI/localedata.jar"/>
+	<classpathentry kind="lib" path="libs/JAI/mlibwrapper_jai.jar"/>
+	<classpathentry kind="lib" path="libs/JAI/sunjce_provider.jar"/>
+	<classpathentry kind="lib" path="libs/JAI/sunmscapi.jar"/>
+	<classpathentry kind="lib" path="libs/JAI/sunpkcs11.jar"/>
+	<classpathentry kind="lib" path="libs/gluegen-rt.jar"/>
+	<classpathentry kind="lib" path="libs/jogl.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

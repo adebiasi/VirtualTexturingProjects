@@ -1,0 +1,35 @@
+#version 110
+
+#include "miplevel_func.txt"
+
+uniform vec2 page_table_size;
+uniform vec2 virt_tex_size;
+uniform sampler2D page_tex;
+uniform float page_size_log2;
+uniform float mip_sample_bias;
+uniform float space_id;
+
+
+// precoding this all into a texture is 2x as fast on the GF 7300...
+// but for a 2kp x 2kp megatexture requires 22MB of texmem... so
+// on machines without much memory, we're better off going the slow
+// way?
+void main()
+{
+#if 0
+   gl_FragColor = texture2D(page_tex, gl_TexCoord[0], page_size_log2 - 0.5);
+#else
+   vec2 page = floor(gl_TexCoord[0].xy * page_table_size)/256.0;
+   vec2 page_low  = fract(page);
+   vec2 page_high = floor(page);// - page_low + 0.5);
+   vec4 result;
+   result.rg = floor(page_low * 256.0 + 0.5) / 255.0;
+   result.b = (page_high.x + page_high.y * 16.0) / 255.0;
+
+   float mip_level = tex_mip_level(gl_TexCoord[0].xy, virt_tex_size) + mip_sample_bias;
+   mip_level = clamp(mip_level,0.0,15.0);
+
+   result.a = (mip_level + space_id)/255.0;
+   gl_FragColor = result;
+#endif
+}
